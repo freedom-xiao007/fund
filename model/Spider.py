@@ -7,11 +7,13 @@
 # -*- coding: utf-8 -*-
 import json
 import re
+import sys
 import time
 
 import requests
 from bs4 import BeautifulSoup
 
+sys.path.append("/home/lw/fund/model/")
 from model.MongoDBUtil import MongoDBUtil
 
 stdout = True
