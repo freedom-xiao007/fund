@@ -12,6 +12,8 @@ import time
 import requests
 from bs4 import BeautifulSoup
 
+from model.MongoDBUtil import MongoDBUtil
+
 stdout = True
 
 
@@ -33,6 +35,15 @@ def get_fund_list():
     fund_list = re.split("datas:", res)[1]
     fund_list = re.split(",count:", fund_list)[0]
     fund_list = json.loads(fund_list)
+
+    data = []
+    for fund in fund_list:
+        data.append({"name": fund[1], "number": fund[0]})
+    print(data)
+
+    for fund in data:
+        MongoDBUtil.update({"number": fund["number"]}, fund, "fundList")
+
     return fund_list
 
 
@@ -65,6 +76,7 @@ def get_situation(fund_number):
     span = html.find_all("span", class_="chooseLow")[0]
     situation["风险等级"] = span.text
 
+    print(situation)
     return situation
 
 
@@ -146,9 +158,43 @@ def get_history_earn(fund_number):
             data.append({
                 d[0]: [d[1], d[2], d[3]]
             })
-    # output(data)
+    output(data)
     return data
 
 
 class Spider:
     pass
+
+
+def get_fund_detail():
+    data = MongoDBUtil.query({}, "fundList")
+    count = 0
+    fund_numbers = []
+    for fund in data:
+        print(fund)
+        count = count + 1
+        fund_numbers.append(fund['number'])
+        print("count:", count)
+    print("基金数量：", count)
+
+    count = 0
+    for fund in fund_numbers:
+        count = count + 1
+        try:
+            number = fund
+            situation_data = get_situation(number)
+            earn_data = get_history_earn(number)
+            MongoDBUtil.update({"number": number},
+                           {'number': number, 'situation': situation_data, 'earn': earn_data},
+                           "fundDetail")
+        except Exception as e:
+            print(e)
+            continue
+        time.sleep(1)
+        print("count:", count, len(fund_numbers))
+
+
+if __name__ == "__main__":
+    get_fund_list()
+    get_fund_detail()
+
