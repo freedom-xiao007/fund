@@ -5,8 +5,6 @@
 # @File    : Fund.py
 # @Software: PyCharm
 # -*- coding: utf-8 -*-
-from flask import jsonify
-
 from model.MongoDBUtil import MongoDBUtil
 
 
