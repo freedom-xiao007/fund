@@ -203,10 +203,10 @@ def get_fund_detail():
 def get_fund_worth(fund_number):
     url = "http://fund.10jqka.com.cn/" + fund_number + "/json/jsondwjz.json"
     res = requests.get(url, stream=True).text
-    print(res)
+    # print(res)
     res = str(res)[16:]
     res = json.loads(res)
-    print(res)
+    # print(res)
 
     dates, values = [], []
     for item in res:

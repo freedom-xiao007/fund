@@ -5,11 +5,21 @@
 # @File    : Analyze.py
 # @Software: PyCharm
 # -*- coding: utf-8 -*-
+"""
+用于数据尝试分析的模块
+"""
+import json
+from datetime import datetime
+
 from model.MongoDBUtil import MongoDBUtil
 from model import Spider
 
 
 class Analyze:
+    """
+    用于检测基金的数据是否获取到
+    """
+
     def check_data(self):
         error_data = []
 
@@ -171,6 +181,71 @@ class Analyze:
             print(year, year_dict[year])
 
 
+# 探索数据中的一点范围内的波峰和波谷规律
+def find_min_max(dates, values, rate):
+    result = {}
+    min_value = float(values[0])
+    max_value = float(values[0])
+    min_date = dates[0]
+    max_date = dates[0]
+    find_mix = True
+    max_count = 0
+    worth = {}
+    for (date, value_s) in zip(dates, values):
+        value = float(value_s)
+        worth[date] = value
+        if find_mix:
+            if value < min_value:
+                min_value = value
+                min_date = date
+            else:
+                find_mix = False
+                max_value = value
+                max_date = date
+        else:
+            if value > max_value:
+                max_value = value
+                max_date = date
+            elif value < max_value and float(max_value - min_value) / float(min_value) > rate:
+                max_count = max_count + 1
+                min_value = value
+                find_mix = True
+                days = datetime.strptime(max_date, '%Y%m%d') - datetime.strptime(min_date, '%Y%m%d')
+                r = str((days, float(max_value - min_value) / float(min_value), min_value, max_value, min_date, max_date))
+                print(days, float(max_value - min_value) / float(min_value), min_value, max_value, min_date, max_date)
+                year = max_date[:4]
+                if year not in result:
+                    result[year] = []
+                    result[year].append(r)
+                else:
+                    result[year].append(r)
+            elif value < max_value and float(max_value - min_value) / float(min_value) < rate:
+                max_value = value
+                max_date = date
+                if value < min_value:
+                    min_value = value
+                    min_date = date
+
+    days = datetime.strptime(max_date, '%Y%m%d') - datetime.strptime(min_date, '%Y%m%d')
+    print(days, float(max_value - min_value) / float(min_value), min_value, max_value, min_date, max_date)
+    r = str((days, float(max_value - min_value) / float(min_value), min_value, max_value, min_date, max_date))
+    year = max_date[:4]
+    if year not in result:
+        result[year] = []
+        result[year].append(r)
+    else:
+        result[year].append(r)
+
+    year_count = int(dates[-1][:4]) - int(dates[0][:4])
+    print(max_count, year_count, year_count * 12)
+    result["result"] = str((max_count, year_count, year_count * 12))
+    return max_count, result
+
+
+def get_fund_worth_data(fund_number):
+    return Spider.get_fund_worth(str(fund_number))
+
+
 if __name__ == "__main__":
     analyze = Analyze()
     # fund_list = analyze.check_data()
@@ -178,5 +253,17 @@ if __name__ == "__main__":
     # analyze.sort_year()
     # analyze.sort_earn()
     # analyze.sort_earn_year(2009)
-    analyze.long_earn(10)
+    # analyze.long_earn(10)
     # analyze.count_year()
+
+    results = {}
+    dates, values = get_fund_worth_data("160106")
+    rate = 0.05
+    max_count, result = find_min_max(dates, values, rate)
+    results[rate] = result
+    while max_count != 0:
+        rate = 0.05 + rate
+        max_count, result = find_min_max(dates, values, rate)
+        results[rate] = result
+    with open("results.json", "w", encoding="utf-8") as f:
+        json.dump(results, f, ensure_ascii=False)
