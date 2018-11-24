@@ -210,15 +210,15 @@ def find_min_max(dates, values, rate):
                 max_count = max_count + 1
                 min_value = value
                 find_mix = True
-                days = datetime.strptime(max_date, '%Y%m%d') - datetime.strptime(min_date, '%Y%m%d')
-                r = str((days, float(max_value - min_value) / float(min_value), min_value, max_value, min_date, max_date))
-                print(days, float(max_value - min_value) / float(min_value), min_value, max_value, min_date, max_date)
-                year = max_date[:4]
-                if year not in result:
-                    result[year] = []
-                    result[year].append(r)
-                else:
-                    result[year].append(r)
+                # days = datetime.strptime(max_date, '%Y%m%d') - datetime.strptime(min_date, '%Y%m%d')
+                # r = str((days, float(max_value - min_value) / float(min_value), min_value, max_value, min_date, max_date))
+                # print(days, float(max_value - min_value) / float(min_value), min_value, max_value, min_date, max_date)
+                # year = max_date[:4]
+                # if year not in result:
+                #     result[year] = []
+                #     result[year].append(r)
+                # else:
+                #     result[year].append(r)
             elif value < max_value and float(max_value - min_value) / float(min_value) < rate:
                 max_value = value
                 max_date = date
@@ -226,15 +226,15 @@ def find_min_max(dates, values, rate):
                     min_value = value
                     min_date = date
 
-    days = datetime.strptime(max_date, '%Y%m%d') - datetime.strptime(min_date, '%Y%m%d')
-    print(days, float(max_value - min_value) / float(min_value), min_value, max_value, min_date, max_date)
-    r = str((days, float(max_value - min_value) / float(min_value), min_value, max_value, min_date, max_date))
-    year = max_date[:4]
-    if year not in result:
-        result[year] = []
-        result[year].append(r)
-    else:
-        result[year].append(r)
+    # days = datetime.strptime(max_date, '%Y%m%d') - datetime.strptime(min_date, '%Y%m%d')
+    # print(days, float(max_value - min_value) / float(min_value), min_value, max_value, min_date, max_date)
+    # r = str((days, float(max_value - min_value) / float(min_value), min_value, max_value, min_date, max_date))
+    # year = max_date[:4]
+    # if year not in result:
+    #     result[year] = []
+    #     result[year].append(r)
+    # else:
+    #     result[year].append(r)
 
     year_count = int(dates[-1][:4]) - int(dates[0][:4])
     print(max_count, year_count, year_count * 12)
@@ -244,6 +244,21 @@ def find_min_max(dates, values, rate):
 
 def get_fund_worth_data(fund_number):
     return Spider.get_fund_worth(str(fund_number))
+
+
+def get_fund_rate(fund_number):
+    results = {}
+    dates, values = get_fund_worth_data(fund_number)
+    rate = 0.05
+    max_count, result = find_min_max(dates, values, rate)
+    results[rate] = result
+    while max_count != 0:
+        rate = 0.05 + rate
+        max_count, result = find_min_max(dates, values, rate)
+        results[rate] = result
+    with open("D:\\temp\\fund\\%s_result.json" % fund_number, "w", encoding="utf-8") as f:
+        json.dump(results, f, ensure_ascii=False, indent=4)
+    print(max_count)
 
 
 if __name__ == "__main__":
@@ -256,14 +271,6 @@ if __name__ == "__main__":
     # analyze.long_earn(10)
     # analyze.count_year()
 
-    results = {}
-    dates, values = get_fund_worth_data("160106")
-    rate = 0.05
-    max_count, result = find_min_max(dates, values, rate)
-    results[rate] = result
-    while max_count != 0:
-        rate = 0.05 + rate
-        max_count, result = find_min_max(dates, values, rate)
-        results[rate] = result
-    with open("results.json", "w", encoding="utf-8") as f:
-        json.dump(results, f, ensure_ascii=False)
+    fund_list = ["160106", "163801", "160505", "163302", "257020"]
+    for fund_number in fund_list:
+        get_fund_rate(fund_number)
