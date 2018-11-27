@@ -10,6 +10,7 @@
 """
 import json
 from datetime import datetime
+from operator import itemgetter
 
 from model.MongoDBUtil import MongoDBUtil
 from model import Spider
@@ -207,18 +208,20 @@ def find_min_max(dates, values, rate):
                 max_value = value
                 max_date = date
             elif value < max_value and float(max_value - min_value) / float(min_value) > rate:
+                days = datetime.strptime(max_date, '%Y%m%d') - datetime.strptime(min_date, '%Y%m%d')
+                # r = str((days, float(max_value - min_value) / float(min_value), min_value, max_value, min_date, max_date))
+                r = [days.days, float(max_value - min_value) / float(min_value), min_value, max_value, min_date, max_date]
+                print(days, float(max_value - min_value) / float(min_value), min_value, max_value, min_date, max_date)
+                year = max_date[:4]
+                if year not in result:
+                    result[year] = []
+                    result[year].append(r)
+                else:
+                    result[year].append(r)
+
                 max_count = max_count + 1
                 min_value = value
                 find_mix = True
-                # days = datetime.strptime(max_date, '%Y%m%d') - datetime.strptime(min_date, '%Y%m%d')
-                # r = str((days, float(max_value - min_value) / float(min_value), min_value, max_value, min_date, max_date))
-                # print(days, float(max_value - min_value) / float(min_value), min_value, max_value, min_date, max_date)
-                # year = max_date[:4]
-                # if year not in result:
-                #     result[year] = []
-                #     result[year].append(r)
-                # else:
-                #     result[year].append(r)
             elif value < max_value and float(max_value - min_value) / float(min_value) < rate:
                 max_value = value
                 max_date = date
@@ -226,19 +229,21 @@ def find_min_max(dates, values, rate):
                     min_value = value
                     min_date = date
 
-    # days = datetime.strptime(max_date, '%Y%m%d') - datetime.strptime(min_date, '%Y%m%d')
-    # print(days, float(max_value - min_value) / float(min_value), min_value, max_value, min_date, max_date)
+    days = datetime.strptime(max_date, '%Y%m%d') - datetime.strptime(min_date, '%Y%m%d')
+    print(days, float(max_value - min_value) / float(min_value), min_value, max_value, min_date, max_date)
     # r = str((days, float(max_value - min_value) / float(min_value), min_value, max_value, min_date, max_date))
-    # year = max_date[:4]
-    # if year not in result:
-    #     result[year] = []
-    #     result[year].append(r)
-    # else:
-    #     result[year].append(r)
+    r = [days.days, float(max_value - min_value) / float(min_value), min_value, max_value, min_date, max_date]
+    year = max_date[:4]
+    if year not in result:
+        result[year] = []
+        result[year].append(r)
+    else:
+        result[year].append(r)
 
     year_count = int(dates[-1][:4]) - int(dates[0][:4])
     print(max_count, year_count, year_count * 12)
-    result["result"] = str((max_count, year_count, year_count * 12))
+    # result["result"] = str([max_count, year_count, year_count * 12])
+    result["result"] = [max_count, year_count, year_count * 12]
     return max_count, result
 
 
@@ -256,9 +261,43 @@ def get_fund_rate(fund_number):
         rate = 0.05 + rate
         max_count, result = find_min_max(dates, values, rate)
         results[rate] = result
-    with open("D:\\temp\\fund\\%s_result.json" % fund_number, "w", encoding="utf-8") as f:
+    with open("C:\\Temp\\fund\\json\\%s.json" % fund_number, "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=4)
     print(max_count)
+
+
+# 读取文件生成收益排序的查看文件
+def create_sort_rate():
+    with open("C:\\Temp\\fund\\sort.json", "r", encoding="utf-8") as f:
+        data = json.load(f)
+    sort_str = {}
+    for rate in data:
+        rate_data = list(data[rate])
+        rate_data = sorted(rate_data, key=itemgetter("amount"), reverse=True)
+        sort_str["%.02f" % float(rate)] = str(rate_data)
+    with open("C:\\Temp\\fund\\sort_str.json", "w", encoding="utf-8") as f:
+        json.dump(sort_str, f, ensure_ascii=False, indent=4)
+
+
+def generate_rate_json():
+    fund_list = ["160106", "163801", "160505", "163302", "257020", "002011", "288002", "240004", "161706", "460001",
+                 "161005", "519008", "519001", "519668", "377010"]
+    sort_result = {}
+    for fund_number in fund_list:
+        # get_fund_rate(fund_number)
+        with open("C:\\Temp\\fund\\json\\%s.json" % fund_number, "r") as f:
+            data = json.load(f)
+        for rate in data:
+            print(data[rate])
+            if rate not in sort_result:
+                sort_result[rate] = []
+                sort_result[rate].append({"fund_number": fund_number, "amount": data[rate]["result"][0],
+                                          "month": data[rate]["result"][2]})
+            else:
+                sort_result[rate].append({"fund_number": fund_number, "amount": data[rate]["result"][0],
+                                          "month": data[rate]["result"][2]})
+    with open("C:\\Temp\\fund\\sort.json", "w", encoding="utf-8") as f:
+        json.dump(sort_result, f, ensure_ascii=False, indent=4)
 
 
 if __name__ == "__main__":
@@ -270,7 +309,3 @@ if __name__ == "__main__":
     # analyze.sort_earn_year(2009)
     # analyze.long_earn(10)
     # analyze.count_year()
-
-    fund_list = ["160106", "163801", "160505", "163302", "257020"]
-    for fund_number in fund_list:
-        get_fund_rate(fund_number)
