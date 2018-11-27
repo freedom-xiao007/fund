@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../static/js/echarts.min.js"></script>
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-1.9.0.min.js"></script>
+</head>
+<body>
+    <div id="fund" style="height: 650px; width: 19%; float: left; overflow: scroll">
+        <input id="fund_number">
+        <ul id="fund_list"></ul>
+    </div>
+
+    <div id="graph" style="width: 79%; height: 650px; float: right;"></div>
+
+    <script>
+        var myChart = echarts.init(document.getElementById('graph'));
+        var x = [];
+        var s = [];
+        var zoom = [];
+        var legendData = [];
+        var index = 0;
+
+        function draw() {
+            console.log("Start draw");
+            var option = {
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data: legendData,
+                },
+                dataZoom: zoom,
+                yAxis: {
+                    type: 'value',
+                },
+                xAxis: x,
+                series: s,
+            };
+            myChart.setOption(option);
+            console.log("End draw");
+        }
+
+        $('#fund_number').keydown(function (event) {
+            console.log(event.which);
+            if(event.which == 13) {
+                console.log("enter");
+                number = $("#fund_number").val();
+                console.log(number);
+
+                $.post('/fundWorthDetail', {
+                    'args': number
+                }, function (data, status) {
+                    var li = $("<li></li>").text(number).attr("name", index);
+                    $("#fund_list").append(li);
+
+                    console.log(data);
+                    zoom.push({"id": 'dataZoomX' + index, "type": 'slider', "xAxisIndex": [0], "filterMode": 'filter'});
+                    zoom.push({"id": 'dataZoomY' + index, "type": 'slider', "yAxisIndex": [0], "filterMode": 'filter'});
+                    if(index == 0) x.push({"type": "category", "data": data["dates"]});
+                    s.push({"data": data["values"], "type": "line", "showSymbol": false, "xAxisIndex": 0, "name": number});
+                    legendData.push(number);
+                    console.log(x);
+                    console.log(s);
+                    draw();
+                    index = index + 1;
+                });
+            }
+        });
+
+        $("li").on('click', function(){
+            console.log("click li");
+            console.log(this)
+        });
+    </script>
+</body>
+</html>

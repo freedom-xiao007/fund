@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../static/js/echarts.min.js"></script>
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-1.9.0.min.js"></script>
+</head>
+<body>
+    <div id="fund_list" style="height: 650px; width: 29%; float: left; overflow: scroll">
+        <ul>
+            {% for fund in fund_list %}
+                <li name="{{ fund[1] }}" onclick="showFundData(this)">{{ fund[0] }} {{ fund[2] }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+    <div id="main" style="width: 69%; height: 650px; float: right;"></div>
+
+    <script type="text/javascript">
+        // 基于准备好的dom，初始化echarts实例
+        var myChart = echarts.init(document.getElementById('main'));
+
+        function showFundData(element) {
+            $.post('/fundData', {
+                'name': element.getAttribute("name")
+            }, function (data, status) {
+                var option = {
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: data['year']
+                    },
+                    yAxis: {
+                        type: 'value'
+                    },
+                    series: [{
+                        data: data['value'],
+                        type: 'line',
+                        showSymbol: false,
+                    }]
+                };
+                // 使用刚指定的配置项和数据显示图表。
+                myChart.setOption(option);
+            })
+        }
+    </script>
+</body>
+</html>

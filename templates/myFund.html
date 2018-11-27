@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../static/js/echarts.min.js"></script>
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-1.9.0.min.js"></script>
+</head>
+<body>
+    <div id="graph" style="width: 100%; height: 800px;"></div>
+
+    <script>
+        $.post('/getMyFundWorthDetail', {
+            }, function (data, status) {
+                console.log(data["dates"]);
+                console.log(data["values"]);
+
+                var myChart = echarts.init(document.getElementById('graph'));
+                var x = [];
+                var s = [];
+                var zoom = [];
+                var legendData = [];
+
+                x.push({"type": "category", "data": data["dates"]});
+                for(var i=0; i<data["values"].length; i++) {
+                    zoom.push({"id": 'dataZoomX' + i, "type": 'slider', "xAxisIndex": [0], "filterMode": 'filter'});
+                    zoom.push({"id": 'dataZoomY' + i, "type": 'slider', "yAxisIndex": [0], "filterMode": 'filter'});
+                    s.push({"data": data["values"][i], "type": "line", "showSymbol": false, "xAxisIndex": 0, "name": data["funds"][i]});
+                    legendData.push(data["funds"][i]);
+                }
+
+                var myChart = echarts.init(document.getElementById('graph'));
+                var option = {
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    legend: {
+                        data: legendData,
+                    },
+                    dataZoom: zoom,
+                    yAxis: {
+                        type: 'value',
+                    },
+                    xAxis: x,
+                    series: s,
+                };
+                myChart.setOption(option);
+            });
+    </script>
+</body>
+</html>
