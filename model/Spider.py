@@ -9,6 +9,7 @@ import json
 import re
 import sys
 import time
+import traceback
 
 import requests
 from bs4 import BeautifulSoup
@@ -150,6 +151,7 @@ def get_manager(fund_number):
 def get_history_earn(fund_number):
     url = "http://fund.eastmoney.com/data/FundPicData.aspx?" \
           "bzdm=%s&n=0&dt=all&vname=ljsylSVG_PicData&r=0.8396031700373916" % fund_number
+    print("get earn ......", fund_number)
     res = requests.get(url, stream=True).text
 
     data = []
@@ -160,7 +162,7 @@ def get_history_earn(fund_number):
             data.append({
                 d[0]: [d[1], d[2], d[3]]
             })
-    output(data)
+    print("Successful!!!")
     return data
 
 
@@ -184,40 +186,44 @@ def get_fund_detail():
         count = count + 1
         try:
             number = fund
-            ret = MongoDBUtil.query({"number": number}, "fundDetail")
-            if ret != 0:
-                print("existed")
-            else:
-                situation_data = get_situation(number)
-                earn_data = get_history_earn(number)
-                MongoDBUtil.update({"number": number},
-                                   {'number': number, 'situation': situation_data, 'earn': earn_data},
-                                   "fundDetail")
+            situation_data = get_situation(number)
+            earn_data = get_history_earn(number)
+            worth_data = get_fund_worth(number)
+            MongoDBUtil.replace({"number": number},
+                                {'number': number, 'situation': situation_data, 'earn': earn_data,
+                                 'worth': worth_data},
+                                "fundDetail", True)
         except Exception as e:
             print(e)
-            continue
+            traceback.print_exc()
+            print('traceback.format_exc():\n%s' % traceback.format_exc())
+
         time.sleep(1)
         print("count:", count, len(fund_numbers))
 
 
 def get_fund_worth(fund_number):
     url = "http://fund.10jqka.com.cn/" + fund_number + "/json/jsondwjz.json"
+    print("get worth......", fund_number)
     res = requests.get(url, stream=True).text
     # print(res)
     res = str(res)[16:]
     res = json.loads(res)
     # print(res)
 
-    dates, values = [], []
+    # dates, values = [], []
+    worth = {}
     for item in res:
-        dates.append(item[0])
-        values.append(item[1])
-    return dates, values
+        # dates.append(item[0])
+        # values.append(float(item[1]))
+        worth[item[0]] = float(item[1])
+    print("Successful!!!")
+    return worth
 
 
 if __name__ == "__main__":
     # get_fund_list()
-    # get_fund_detail()
+    get_fund_detail()
     # get_history_earn('005506')
     # get_fund_worth("160106")
-    get_fund_worth("161107")
+    # get_fund_worth("161107")

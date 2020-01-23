@@ -57,8 +57,11 @@ class MongoDBUtil:
         return True
 
     @staticmethod
-    def insert(data):
-        MongoDBUtil.col.insert_one(data)
+    def insert(data, collection):
+        if not MongoDBUtil.isConnect:
+            MongoDBUtil.connect()
+        col = MongoDBUtil.db[collection]
+        col.insert_one(data)
         print("插入成功:", data)
 
     @staticmethod
@@ -76,7 +79,14 @@ class MongoDBUtil:
             print("更新成功:", data)
 
     @staticmethod
-    def query(condition, collection):
+    def replace(condition, data, collection, upsert):
+        if not MongoDBUtil.isConnect:
+            MongoDBUtil.connect()
+        col = MongoDBUtil.db[collection]
+        col.replace_one(condition, data, upsert=upsert)
+
+    @staticmethod
+    def query(condition, collection) -> pymongo.cursor:
         if not MongoDBUtil.isConnect:
             MongoDBUtil.connect()
         col = MongoDBUtil.db[collection]
