@@ -310,12 +310,17 @@ def shortSimulate(number, name, beginDate, endDate, worth, buyPoint, addPoint, s
     print(sellMoney, len(sellLog), sellLog)
     for item in sellLog:
         print(item)
-    return {"name": name, "number": number, "amount": len(sellLog), "sellMoney": sellMoney, "log": sellLog}
+    average = 0
+    if len(data) > 0:
+        average = sellMoney / len(data)
+    return {"name": name, "number": number, "amount": len(sellLog), "average": average, "sellMoney": sellMoney, "log": sellLog}
 
 
 def getShortResult(stopValue):
     data = MongoDBUtil.query({}, "worth_tt")
     result = []
+    begin = "1999-11-06 00:00:00"
+    end = "2028-01-01 00:00:00"
     for item in data:
         name = item["name"]
         if name.find("C") == -1:
@@ -325,12 +330,19 @@ def getShortResult(stopValue):
 
         number = item["number"]
         worth = item["worth"]
-        result.append(shortSimulate(number, name, "2018-11-06 00:00:00", "2028-01-01 00:00:00", worth, stopValue))
-        # result.append(shortSimulate(number, name, "2000-11-06 00:00:00", "2028-01-01 00:00:00", worth, stopValue))
+        if len(worth) < 600:
+            print("基金年限不足两年，不进行模拟")
+            continue
+        # result.append(shortSimulate(number, name, "2018-11-06 00:00:00", "2028-01-01 00:00:00", worth, stopValue))
+        r = shortSimulate(number, name, begin, end, worth, 1, 0.1, 0.02, 1)
+        if r['sellMoney'] == 0:
+            continue
+        # if r["amount"] < 10:
+        #     continue
+        result.append(r)
 
-
-    dataSorted = sorted(result, key=operator.itemgetter("sellMoney"), reverse=True)
-    with open("../docs/shortSimulate4.json", "w", encoding="utf-8") as f:
+    dataSorted = sorted(result, key=operator.itemgetter("amount"), reverse=True)
+    with open("../docs/amount.json", "w", encoding="utf-8") as f:
         json.dump(dataSorted, f, ensure_ascii=False, indent=4)
 
 
@@ -458,13 +470,13 @@ def printResult():
 
 
 if __name__ == "__main__":
-    save()
+    # save()
     # downPoint()
     # up2Down()
     # ratioSimulate()
     # printResult()
 
-    # shortSimulate("001630", "天弘中证计算机主题指数C", "2019-01-01 00:00:00", "2020-01-01 00:00:00", None, 1, 0.2, 0.03, 1)
+    # print(shortSimulate("001630", "天弘中证计算机主题指数C", "2000-01-01 00:00:00", "2030-01-01 00:00:00", None, 1, 0.2, 0.02, 1))
     # shortSimulate("001630", "天弘中证计算机主题指数C", "2019-01-01 00:00:00", "2020-01-01 00:00:00", None, 2, 0.2, 0.03, 1)
 
     # r2015 = shortSimulate("001630", "天弘中证计算机主题指数C", "2015-01-01 00:00:00", "2016-01-01 00:00:00", None, 1, 0.2, 0.02, 1)
@@ -478,6 +490,10 @@ if __name__ == "__main__":
     # print(r2017)
     # print(r2018)
     # print(r2019)
+
+    r2019 = shortSimulate("001630", "天弘中证计算机主题指数C", "2019-01-01 00:00:00", "2020-01-01 00:00:00", None, 1, 0.2, 0.02, 1)
+    # r2019 = shortSimulate("000313", "天弘中证计算机主题指数C", "2019-01-01 00:00:00", "2020-01-01 00:00:00", None, 1, 0.2, 0.02, 1)
+    # r2019 = shortSimulate("519665", "天弘中证计算机主题指数C", "2019-01-01 00:00:00", "2020-01-01 00:00:00", None, 1, 0.2, 0.02, 1)
 
     # getShortResult(0.025)
 
