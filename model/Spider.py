@@ -222,8 +222,8 @@ def get_fund_worth(fund_number):
 
 
 if __name__ == "__main__":
-    # get_fund_list()
-    get_fund_detail()
+    get_fund_list()
+    # get_fund_detail()
     # get_history_earn('005506')
     # get_fund_worth("160106")
     # get_fund_worth("161107")

@@ -244,6 +244,7 @@ def shortSimulate(number, name, beginDate, endDate, worth, buyPoint, addPoint, s
     sellMoney = 0.0
     baseMoney = 10000
     holdAmount = None
+    maxInput = 0
     for index in range(0, len(data)):
         item = data[index]
         stamp = item["x"]
@@ -261,12 +262,16 @@ def shortSimulate(number, name, beginDate, endDate, worth, buyPoint, addPoint, s
             currentStamp = item['x']
             baseMoney = 50000
             holdAmount = baseMoney / value
+            if baseMoney > maxInput:
+                maxInput = baseMoney
             print("------------------初始投入", holdAmount, baseMoney)
             continue
         elif ratio <= -addPoint and holdAmount is not None:
             currentValue = (currentValue + value) / 2
             baseMoney = baseMoney + 3000
             holdAmount = holdAmount + 3000 / value
+            if baseMoney > maxInput:
+                maxInput = baseMoney
             print("继续投入", holdAmount, baseMoney, (holdAmount * value - baseMoney) / baseMoney)
             continue
 
@@ -292,8 +297,8 @@ def shortSimulate(number, name, beginDate, endDate, worth, buyPoint, addPoint, s
 
             sell = value * holdAmount - baseMoney
             sellMoney = sellMoney + sell
-            sellLog.append((currentDate[0:10], dateTime[0:10], currentValue, value, profit, sell, baseMoney))
-            print("Sell::", currentDate[0:10], dateTime[0:10], currentValue, value, profit, sell, baseMoney)
+            sellLog.append((currentDate[0:10], dateTime[0:10], day, currentValue, value, profit, sell, baseMoney))
+            print("Sell::", currentDate[0:10], dateTime[0:10], day, currentValue, value, profit, sell, baseMoney)
             currentValue = None
             holdAmount = None
         else:
@@ -313,7 +318,8 @@ def shortSimulate(number, name, beginDate, endDate, worth, buyPoint, addPoint, s
     average = 0
     if len(data) > 0:
         average = sellMoney / len(data)
-    return {"name": name, "number": number, "amount": len(sellLog), "average": average, "sellMoney": sellMoney, "log": sellLog}
+    return {"name": name, "number": number, "amount": len(sellLog), "average": average, "sellMoney": sellMoney,
+            "log": sellLog, "maxInput": maxInput}
 
 
 def getShortResult(stopValue):
@@ -321,6 +327,8 @@ def getShortResult(stopValue):
     result = []
     begin = "1999-11-06 00:00:00"
     end = "2028-01-01 00:00:00"
+    begin = "2019-01-01 00:00:00"
+    end = "2020-01-01 00:00:00"
     for item in data:
         name = item["name"]
         if name.find("C") == -1:
@@ -341,8 +349,8 @@ def getShortResult(stopValue):
         #     continue
         result.append(r)
 
-    dataSorted = sorted(result, key=operator.itemgetter("amount"), reverse=True)
-    with open("../docs/amount.json", "w", encoding="utf-8") as f:
+    dataSorted = sorted(result, key=operator.itemgetter("average"), reverse=True)
+    with open("../docs/average2019.json", "w", encoding="utf-8") as f:
         json.dump(dataSorted, f, ensure_ascii=False, indent=4)
 
 
@@ -470,6 +478,7 @@ def printResult():
 
 
 if __name__ == "__main__":
+    getFundDetail("501010")
     # save()
     # downPoint()
     # up2Down()
@@ -491,7 +500,7 @@ if __name__ == "__main__":
     # print(r2018)
     # print(r2019)
 
-    r2019 = shortSimulate("001630", "天弘中证计算机主题指数C", "2019-01-01 00:00:00", "2020-01-01 00:00:00", None, 1, 0.2, 0.02, 1)
+    # r2019 = shortSimulate("001630", "天弘中证计算机主题指数C", "2019-01-01 00:00:00", "2020-01-01 00:00:00", None, 1, 0.2, 0.02, 1)
     # r2019 = shortSimulate("000313", "天弘中证计算机主题指数C", "2019-01-01 00:00:00", "2020-01-01 00:00:00", None, 1, 0.2, 0.02, 1)
     # r2019 = shortSimulate("519665", "天弘中证计算机主题指数C", "2019-01-01 00:00:00", "2020-01-01 00:00:00", None, 1, 0.2, 0.02, 1)
 

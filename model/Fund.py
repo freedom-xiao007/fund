@@ -64,5 +64,5 @@ if __name__ == "__main__":
     # for fund_number in fund_list:
     #     get_fund_worth(fund_number)
 
-    fund_list = get_fund_list(False)
+    fund_list = get_fund_list(True)
     update_fund_worth(fund_list)

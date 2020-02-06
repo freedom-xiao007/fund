@@ -29,7 +29,8 @@ class MongoDBUtil:
     @staticmethod
     def connect():
         try:
-            MongoDBUtil.client = pymongo.MongoClient("mongodb://localhost:27017/")
+            # MongoDBUtil.client = pymongo.MongoClient("mongodb://localhost:27017/")
+            MongoDBUtil.client = pymongo.MongoClient("mongodb://192.168.99.100:27017/")
             MongoDBUtil.db = MongoDBUtil.client["fund"]
             # MongoDBUtil.col = MongoDBUtil.db["fund"]
             MongoDBUtil.isConnect = True
@@ -101,8 +102,8 @@ class MongoDBUtil:
 
 if __name__ == "__main__":
     MongoDBUtil.connect()
-    # query = {}
-    # ret = MongoDBUtil.query(query)
-    # for i in ret:
-    #     print(i)
+    query = {}
+    ret = MongoDBUtil.query(query, "worth_tt")
+    for i in ret:
+        print(i)
     MongoDBUtil.close()
