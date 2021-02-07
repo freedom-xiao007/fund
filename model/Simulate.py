@@ -119,9 +119,10 @@ def getSimulateResult(beginDate, endDate, fundNumber, name, dataOrigin):
 
 def get_fund_worth(fund_number):
     url = "http://fund.10jqka.com.cn/" + fund_number + "/json/jsondwjz.json"
+    print(url)
     print("get worth......", fund_number)
     res = requests.get(url, stream=True).text
-    # print(res)
+    print(res)
     res = str(res)[16:]
     res = json.loads(res)
     # print(res)
@@ -151,7 +152,8 @@ def saveFundWorth():
         number = fund["number"]
         name = fund["name"]
         try:
-            MongoDBUtil.insert({"name": name, "number": number, "worth": get_fund_worth(number)}, collection)
+            # MongoDBUtil.insert({"name": name, "number": number, "worth": get_fund_worth(number)}, collection)
+            MongoDBUtil.replace({"number": number}, {"name": name, "number": number, "worth": get_fund_worth(number)}, collection)
         except Exception as e:
             print(e)
             traceback.print_exc()
@@ -182,15 +184,16 @@ def getProfit(beginDate, endDate, suffix):
 
     worthResult.sort(key=itemgetter("盈利率"))
     worthResult.reverse()
-    with open("../docs/X2N/worth_%s_%s_%s.json" % (beginDate, endDate, suffix), "w", encoding="utf-8") as f:
+    with open("../docs/NP/worth_%s_%s_%s.json" % (beginDate, endDate, suffix), "w", encoding="utf-8") as f:
         json.dump(worthResult, f, ensure_ascii=False, indent=4)
 
 
 if __name__ == "__main__":
+    # get_fund_worth("1610005")
     # saveFundWorth()
 
-    # print(getSimulateResult("20001106", "20070200", "161005", "富国天惠成长混合A", None))
-    print(getSimulateResult("20070200", "20080400", "161005", "富国天惠成长混合A", None))
+    print(getSimulateResult("20001106", "20070200", "161005", "富国天惠成长混合A", None))
+    # print(getSimulateResult("20070200", "20080400", "161005", "富国天惠成长混合A", None))
     # print(getSimulateResult("20090000", "20160400", "161005", "富国天惠成长混合A", None))
     # print(getSimulateResult("20160300", "20190200", "161005", "富国天惠成长混合A", None))
     # print(getSimulateResult("20160200", "20260400", "161005", "富国天惠成长混合A", None))

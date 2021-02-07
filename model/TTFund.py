@@ -478,8 +478,8 @@ def printResult():
 
 
 if __name__ == "__main__":
-    getFundDetail("501010")
-    # save()
+    # getFundDetail("501010")
+    save()
     # downPoint()
     # up2Down()
     # ratioSimulate()
@@ -514,3 +514,5 @@ if __name__ == "__main__":
     # print(getSimulateResult("2018-11-06 00:00:00", "2077-02-01 00:00:00", "110011", "易方达中小盘混合", None))
 
     # getProfit("2000-06-01 00:00:00", "2027-10-31 00:00:00", "ANB")
+
+    # print(shortSimulate("161005", "富国天惠成长混合A", "2000-11-01 00:00:00", "2007-02-01 00:00:00", None, 1, 0.2, 0.02, 1))

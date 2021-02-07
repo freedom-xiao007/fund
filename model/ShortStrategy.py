@@ -266,9 +266,10 @@ if __name__ == "__main__":
     # multiTheadSimulate()
     # exit(0)
 
-    funds = ["501010", "001638", "001632", "501010", "001618", "000879", "001559", "000241", "000313"]
+    funds = ["000313", "000241", "001559", "000879", "001618", "000796", "001632", "004231", "001638"]
     # multipleStrategy(funds, dump=True, beginStr="2018-01-01 00:00:00", endStr="2019-01-01 00:00:00")
     multipleStrategy(funds, dump=True, beginStr="2019-01-01 00:00:00", endStr="2020-01-01 00:00:00")
+    # multipleStrategy(funds, dump=True, beginStr="2020-02-03 00:00:00", endStr="2020-03-01 00:00:00")
 
 
     # profitMean, logMean = getAverageMean()
